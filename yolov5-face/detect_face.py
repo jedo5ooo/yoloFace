@@ -76,7 +76,7 @@ def show_results(img, xyxy, conf, landmarks, class_num):
     y2 = int(xyxy[3])
     img = img.copy()
 
-    # 모자이크 처리
+    # 이미지에 OpenCV로 처리
     img = apply_mosaic(img, x1, y1, x2 - x1, y2 - y1)
 
     # cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), thickness=tl, lineType=cv2.LINE_AA)
@@ -183,7 +183,7 @@ def detect(
                     n = (det[:, -1] == c).sum()  # detections per class
 
                 # 얼굴에 좌표 표시
-                #det[:, 5:15] = scale_coords_landmarks(img.shape[2:], det[:, 5:15], im0.shape).round()
+                det[:, 5:15] = scale_coords_landmarks(img.shape[2:], det[:, 5:15], im0.shape).round()
 
                 for j in range(det.size()[0]):
                     xyxy = det[j, :4].view(-1).tolist()
