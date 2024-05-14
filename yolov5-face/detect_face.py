@@ -30,7 +30,6 @@ def load_model(weights, device):
     model = attempt_load(weights, map_location=device)  # load FP32 model
     return model
 
-
 def scale_coords_landmarks(img1_shape, coords, img0_shape, ratio_pad=None):
     # Rescale coords (xyxy) from img1_shape to img0_shape
     if ratio_pad is None:  # calculate from img0_shape
@@ -56,7 +55,7 @@ def scale_coords_landmarks(img1_shape, coords, img0_shape, ratio_pad=None):
     coords[:, 9].clamp_(0, img0_shape[0])  # y5
     return coords
 
-def apply_mosaic(img, x, y, w, h, mosaic_ratio=0.11):
+def apply_mosaic(img, x, y, w, h, mosaic_ratio): # 가중치를 intensity로 곱해줌
     mosaic_rate = int(mosaic_ratio * max(w, h))
     for i in range(y, y + h, mosaic_rate):
         for j in range(x, x + w, mosaic_rate):
@@ -67,7 +66,7 @@ def apply_mosaic(img, x, y, w, h, mosaic_ratio=0.11):
             img[s_y:e_y, s_x:e_x] = img[s_y:e_y, s_x:e_x].mean(axis=0).mean(axis=0)
     return img
 
-def show_results(img, xyxy, conf, landmarks, class_num):
+def show_results(img, xyxy, conf, landmarks, class_num, ratio):
     h, w, c = img.shape
     tl = 1 or round(0.002 * (h + w) / 2) + 1  # line/font thickness
     x1 = int(xyxy[0])
@@ -77,7 +76,7 @@ def show_results(img, xyxy, conf, landmarks, class_num):
     img = img.copy()
 
     # 이미지에 OpenCV로 처리
-    img = apply_mosaic(img, x1, y1, x2 - x1, y2 - y1)
+    img = apply_mosaic(img, x1, y1, x2 - x1, y2 - y1, mosaic_ratio=0.025*ratio)
 
     # cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), thickness=tl, lineType=cv2.LINE_AA)
 
@@ -102,7 +101,8 @@ def detect(
     name,
     exist_ok,
     save_img,
-    view_img
+    view_img,
+    ratio
 ):
     # Load model
     img_size = 640
@@ -191,7 +191,7 @@ def detect(
                     landmarks = det[j, 5:15].view(-1).tolist()
                     class_num = det[j, 15].cpu().numpy()
                     
-                    im0 = show_results(im0, xyxy, conf, landmarks, class_num)
+                    im0 = show_results(im0, xyxy, conf, landmarks, class_num, ratio)
             
             if view_img:
                 cv2.imshow('result', im0)
@@ -233,9 +233,10 @@ if __name__ == '__main__':
     parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
     parser.add_argument('--save-img', action='store_true', help='save results')
     parser.add_argument('--view-img', action='store_true', help='show results')
+    parser.add_argument('--ratio', type=int, default=2, help='multiple ratio to mosaic_ratio')
 
     opt = parser.parse_args()
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = load_model(opt.weights, device)
-    detect(model, opt.source, device, opt.project, opt.name, opt.exist_ok, opt.save_img, opt.view_img)
+    detect(model, opt.source, device, opt.project, opt.name, opt.exist_ok, opt.save_img, opt.view_img, opt.ratio)

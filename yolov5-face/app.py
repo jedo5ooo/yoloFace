@@ -4,11 +4,14 @@ import numpy as np
 import torch
 import shutil
 import os
+import base64
 from datetime import datetime
+import json
 app = Flask(__name__)
 
 # 업로드된 파일이 저장될 디렉토리 경로
 UPLOAD_FOLDER = 'uploads'
+userMozaic_folder = 'userMozaic'
 # 허용할 파일 확장자
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 detect_folder =""
@@ -84,6 +87,58 @@ def upload_file():
     else:
         return 'Allowed file types are png, jpg, jpeg, gif'
 
+# @app.route('/userMozaic', methods=['POST'])
+# def userMozaic():
+#     result_folder ="result_folder"
+#     # 파일이 업로드 되었는지 확인
+#     if 'file' not in request.files:
+#         return 'No file part'
+    
+#     file = request.files['file']
 
+#     # 파일이 비어 있는지 확인
+#     if file.filename == '':
+#         return 'No selected file'
+    
+#     # 파일이 허용된 확장자인지 확인
+#     if file and allowed_file(file.filename):
+#         # 파일을 업로드할 디렉토리 생성
+#         if not os.path.exists(userMozaic_folder):
+#             os.makedirs(userMozaic_folder)
+        
+#         filepath = os.path.join(userMozaic_folder, file.filename)
+#         file.save(filepath)
+        
+#         # 데이터 받기
+#         x = request.form.getlist('x')
+#         x = list(map(float, x))
+#         y = request.form.getlist('y')
+#         y = list(map(float, y))
+#         width  = request.form.getlist('width')
+#         width = list(map(float, width))
+#         height  = request.form.getlist('height')
+#         height = list(map(float, height))
+#         mosaic_images = request.form.getlist('mosaicImage')
+#         mosaic_images_value = mosaic_images[0]
+#         image_dict = json.loads(mosaic_images_value)
+#         image_url= image_dict['mosaicImage']
+
+#         img_data = image_url.split(',')[1]  # base64 부분을 제외한 실제 이미지 데이터만 추출
+#         img_binary = base64.b64decode(img_data)  # base64 디코딩
+
+#         # 파일 경로 설정 및 저장
+#         # 새로운 파일 이름 생성
+#         new_filename = f'userMozaic{len(os.listdir(userMozaic_folder))}.jpg'
+#         new_filepath = os.path.join(userMozaic_folder, new_filename)
+
+#         with open(new_filepath, 'wb') as f:
+#             f.write(img_binary)
+
+#         # 새로 저장한 이미지 반환
+#         result_path = new_filepath
+#         return read_image(result_path)
+#     else:
+#         return 'Allowed file types are png, jpg, jpeg, gif'
+    
 if __name__ == '__main__':
     app.run(debug=True, host='127.0.0.1', port= 5000)
